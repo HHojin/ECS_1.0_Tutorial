@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Transforms;
 
 [BurstCompile]
@@ -27,13 +28,25 @@ public partial struct SpawnTombsoneSystem : ISystem
         var graveyard = SystemAPI.GetAspect<GraveyardAspect>(graveyardEntity);
 
         var ecb = new EntityCommandBuffer(Allocator.TempJob);
+        var tomstoneOffest = new float3(0f, -2f, 1f);
+
+        var builder = new BlobBuilder(Allocator.Temp);
+        ref var spawnPoints = ref builder.ConstructRoot<ZombieSpawnPointsBlob>();
+        var arrayBuilder = builder.Allocate(ref spawnPoints.Value, graveyard.NumberTombstonesToSpawn);
 
         for(var i = 0; i < graveyard.NumberTombstonesToSpawn; i++)
         {
             var newTombstone = ecb.Instantiate(graveyard.TombstonePrefab);
             var newTombstoneTransform = graveyard.GetRandomTombstoneTransform();
             ecb.SetComponent(newTombstone, newTombstoneTransform);
+
+            var newZombieSpawnPoint = newTombstoneTransform.Position + tomstoneOffest;
+            arrayBuilder[i] = newZombieSpawnPoint;
         }
+
+        var blobAsset = builder.CreateBlobAssetReference<ZombieSpawnPointsBlob>(Allocator.Persistent);
+        ecb.SetComponent(graveyardEntity, new ZombieSpawnPoints { Value = blobAsset });
+        builder.Dispose();
 
         ecb.Playback(state.EntityManager);
     }

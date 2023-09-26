@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -11,9 +12,17 @@ public readonly partial struct GraveyardAspect : IAspect
 
     private readonly RefRO<GraveyardProperties> _graveyardProperties;
     private readonly RefRW<GraveyardRandom> _graveyardRandom;
+    private readonly RefRW<ZombieSpawnPoints> _zombieSpawnPoints;
 
     public int NumberTombstonesToSpawn => _graveyardProperties.ValueRO.NumberTombstonesToSpawn;
     public Entity TombstonePrefab => _graveyardProperties.ValueRO.TombsonePrefab;
+
+    public bool ZombieSpawnPointInitialized()
+    {
+        return _zombieSpawnPoints.ValueRO.Value.IsCreated && ZombieSpawnPointCount > 0;
+    }
+
+    private int ZombieSpawnPointCount => _zombieSpawnPoints.ValueRO.Value.Value.Value.Length;
 
     public LocalTransform GetRandomTombstoneTransform()
     {
