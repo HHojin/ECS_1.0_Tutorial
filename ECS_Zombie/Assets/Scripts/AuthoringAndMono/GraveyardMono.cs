@@ -8,6 +8,8 @@ public class GraveyardMono : MonoBehaviour
     public int NumerTombsonesToSpawn;
     public GameObject TombstonePrefab;
     public uint RandomSeed;
+    public GameObject ZombiePrefab;
+    public float ZombieSpawnRate;
 }
 
 public class GraveyardBaker : Baker<GraveyardMono>
@@ -24,7 +26,9 @@ public class GraveyardBaker : Baker<GraveyardMono>
         {
             FieldDimensions = authoring.FieldDimensions,
             NumberTombstonesToSpawn = authoring.NumerTombsonesToSpawn,
-            TombsonePrefab = GetEntity(authoring.TombstonePrefab, TransformUsageFlags.Dynamic)
+            TombsonePrefab = GetEntity(authoring.TombstonePrefab, TransformUsageFlags.Dynamic),
+            ZombiePrefab = GetEntity(authoring.ZombiePrefab, TransformUsageFlags.Dynamic),
+            ZombieSpawnRate = authoring.ZombieSpawnRate
         });
 
         AddComponent(graveyardEntity, new GraveyardRandom
@@ -32,6 +36,7 @@ public class GraveyardBaker : Baker<GraveyardMono>
             Value = Unity.Mathematics.Random.CreateFromIndex(authoring.RandomSeed)
         });
 
-        AddComponent<ZombieSpawnPoints>();
+        AddComponent<ZombieSpawnPoints>(graveyardEntity);
+        AddComponent<ZombieSpawnTimer>(graveyardEntity);
     }
 }
